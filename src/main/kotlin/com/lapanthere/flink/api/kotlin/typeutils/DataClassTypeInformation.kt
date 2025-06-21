@@ -45,11 +45,7 @@ public class DataClassTypeInformation<T : Any>(
         31 * (31 * super.hashCode() + fieldNames.contentHashCode()) + genericParameters.values.toTypedArray().contentHashCode()
 
     @Deprecated("Deprecated in Java")
-    override fun createSerializer(config: ExecutionConfig): TypeSerializer<T> =
-        DataClassTypeSerializer(
-            klass,
-            types.take(arity).map { it.createSerializer(config) }.toTypedArray(),
-        )
+    override fun createSerializer(config: ExecutionConfig): TypeSerializer<T> = createSerializer(config.serializerConfig)
 
     override fun createSerializer(config: SerializerConfig?): TypeSerializer<T> =
         DataClassTypeSerializer(klass, types.take(arity).map { it.createSerializer(config) }.toTypedArray())
