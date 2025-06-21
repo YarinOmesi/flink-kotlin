@@ -12,11 +12,17 @@ public class DataClassTypeSerializer<T : Any>(
     type: Class<T>?,
     fieldSerializers: Array<TypeSerializer<*>>,
 ) : TupleSerializerBase<T>(type, fieldSerializers) {
-    override fun duplicate(): TypeSerializer<T> =
-        DataClassTypeSerializer(
-            tupleClass,
-            fieldSerializers.map { it.duplicate() }.toTypedArray(),
-        )
+    override fun duplicate(): TypeSerializer<T> {
+        val duplicatedFieldSerializers = fieldSerializers.map { it.duplicate() }.toTypedArray<TypeSerializer<*>>()
+
+        val stateful  = fieldSerializers.indices.any { i -> fieldSerializers[i] !== duplicatedFieldSerializers[i] }
+
+        return if(stateful) {
+            DataClassTypeSerializer(tupleClass, duplicatedFieldSerializers)
+        } else {
+            this
+        }
+    }
 
     override fun createInstance(fields: Array<out Any?>): T? =
         try {
