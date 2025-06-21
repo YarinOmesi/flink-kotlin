@@ -22,6 +22,8 @@ internal class DataClassTypeSerializerTest : AbstractDataClassTypeSerializerTest
         arrayOf(
             DataClass("string", 1, Nested("string")),
             DataClass("string", 123, Nested("123")),
+            DataClass(null, 123, Nested("123")),
+            DataClass(null, null, null),
         )
 }
 

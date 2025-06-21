@@ -43,9 +43,9 @@ data class Nested(
 
 @TypeInfo(DataClassTypeInfoFactory::class)
 data class DataClass(
-    val string: String,
-    val long: Long,
-    val nested: Nested,
+    val string: String?,
+    val long: Long?,
+    val nested: Nested?,
 ) : Serializable
 
 data class Purchase(
