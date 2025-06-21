@@ -46,23 +46,19 @@ public class DataClassTypeSerializer<T : Any>(
 
     override fun deserialize(reuse: T?, source: DataInputView): T? = deserialize(source)
 
-    override fun serialize(record: T?, target: DataOutputView) {
+    override fun serialize(record: T, target: DataOutputView) {
         fieldSerializers.forEachIndexed { i, serializer ->
-            serializer.serialize(record?.component(i), target)
+            serializer.serialize(record.component(i), target)
         }
     }
 
-    override fun copy(from: T?, reuse: T): T? = copy(from)
+    override fun copy(from: T, reuse: T): T? = copy(from)
 
-    override fun copy(from: T?): T? {
-        return if (from == null) {
-            null
-        } else {
-            val fields = fieldSerializers
-                .mapIndexed { i, serializer -> serializer.copy(from.component(i)) }
-                .toTypedArray()
-            createInstance(fields)
-        }
+    override fun copy(from: T): T? {
+        val fields = fieldSerializers
+            .mapIndexed { i, serializer -> serializer.copy(from.component(i)) }
+            .toTypedArray()
+        return createInstance(fields)
     }
 }
 
