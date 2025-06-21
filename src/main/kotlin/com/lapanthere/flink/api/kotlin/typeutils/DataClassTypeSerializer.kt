@@ -24,24 +24,25 @@ public class DataClassTypeSerializer<T : Any>(
         }
     }
 
-    override fun createInstance(fields: Array<out Any?>): T? =
-        try {
-            tupleClass.kotlin.primaryConstructor?.call(*fields)
+    override fun createInstance(fields: Array<out Any?>): T {
+        return try {
+            tupleClass.kotlin.primaryConstructor!!.call(*fields)
         } catch (e: Throwable) {
-            null
+            throw RuntimeException("Cannot instantiate ${tupleClass.name}.", e)
         }
+    }
 
-    override fun createInstance(): T? {
+    override fun createInstance(): T {
         return createInstance(fieldSerializers.map { it.createInstance() }.toTypedArray())
     }
 
-    override fun deserialize(source: DataInputView): T? {
+    override fun deserialize(source: DataInputView): T {
         return createInstance(fieldSerializers.map { it.deserialize(source) }.toTypedArray())
     }
 
     override fun snapshotConfiguration(): TypeSerializerSnapshot<T> = DataClassTypeSerializerSnapshot(this)
 
-    override fun createOrReuseInstance(fields: Array<out Any>, reuse: T): T? = createInstance(fields)
+    override fun createOrReuseInstance(fields: Array<out Any>, reuse: T?): T = createInstance(fields)
 
     override fun deserialize(reuse: T?, source: DataInputView): T? = deserialize(source)
 
