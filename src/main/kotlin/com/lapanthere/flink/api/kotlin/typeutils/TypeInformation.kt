@@ -14,7 +14,7 @@ import kotlin.reflect.typeOf
 
 public fun createTypeInformation(type: KType): TypeInformation<*> {
     val klass = type.jvmErasure
-    return when {
+    val info = when {
         klass.isData -> {
             val generics = klass.typeParameters.map { it.starProjectedType }
             val projected = type.arguments.map { it.type ?: Any::class.starProjectedType }
@@ -40,6 +40,12 @@ public fun createTypeInformation(type: KType): TypeInformation<*> {
             ListTypeInfo(createTypeInformation(type.arguments.map { it.type ?: Any::class.starProjectedType }.first()))
         }
         else -> TypeExtractor.createTypeInfo(type.javaType)
+    }
+
+    return if(type.isMarkedNullable) {
+        NullableTypeInfo(info)
+    } else {
+        info
     }
 }
 
