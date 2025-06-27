@@ -14,35 +14,38 @@ import kotlin.reflect.typeOf
 
 public fun createTypeInformation(type: KType): TypeInformation<*> {
     val klass = type.jvmErasure
-    val info = when {
-        klass.isData -> {
-            val generics = klass.typeParameters.map { it.starProjectedType }
-            val projected = type.arguments.map { it.type ?: Any::class.starProjectedType }
-            val mapping = generics.zip(projected).toMap()
-            val fields = klass.primaryConstructor?.parameters ?: emptyList()
-            val parameters = fields.map { mapping.getOrDefault(it.type, it.type) }
-            DataClassTypeInformation(
-                klass.java,
-                mapping.map { (key, value) -> key.javaType.typeName to createTypeInformation(value) }.toMap(),
-                parameters.map { createTypeInformation(it) }.toTypedArray(),
-                fields.map { it.name!! }.toTypedArray(),
-            )
+    val info =
+        when {
+            klass.isData -> {
+                val generics = klass.typeParameters.map { it.starProjectedType }
+                val projected = type.arguments.map { it.type ?: Any::class.starProjectedType }
+                val mapping = generics.zip(projected).toMap()
+                val fields = klass.primaryConstructor?.parameters ?: emptyList()
+                val parameters = fields.map { mapping.getOrDefault(it.type, it.type) }
+                DataClassTypeInformation(
+                    klass.java,
+                    mapping.map { (key, value) -> key.javaType.typeName to createTypeInformation(value) }.toMap(),
+                    parameters.map { createTypeInformation(it) }.toTypedArray(),
+                    fields.map { it.name!! }.toTypedArray(),
+                )
+            }
+            klass.isSubclassOf(Map::class) -> {
+                val (key, value) = type.arguments.map { it.type ?: Any::class.starProjectedType }
+                MapTypeInfo(createTypeInformation(key), createTypeInformation(value))
+            }
+            klass.isSubclassOf(Set::class) -> {
+                val (value) = type.arguments.map { it.type ?: Any::class.starProjectedType }
+                SetTypeInformation(createTypeInformation(value))
+            }
+            klass.isSubclassOf(Collection::class) -> {
+                ListTypeInfo(
+                    createTypeInformation(type.arguments.map { it.type ?: Any::class.starProjectedType }.first()),
+                )
+            }
+            else -> TypeExtractor.createTypeInfo(type.javaType)
         }
-        klass.isSubclassOf(Map::class) -> {
-            val (key, value) = type.arguments.map { it.type ?: Any::class.starProjectedType }
-            MapTypeInfo(createTypeInformation(key), createTypeInformation(value))
-        }
-        klass.isSubclassOf(Set::class) -> {
-            val (value) = type.arguments.map { it.type ?: Any::class.starProjectedType }
-            SetTypeInformation(createTypeInformation(value))
-        }
-        klass.isSubclassOf(Collection::class) -> {
-            ListTypeInfo(createTypeInformation(type.arguments.map { it.type ?: Any::class.starProjectedType }.first()))
-        }
-        else -> TypeExtractor.createTypeInfo(type.javaType)
-    }
 
-    return if(type.isMarkedNullable) {
+    return if (type.isMarkedNullable) {
         NullableTypeInfo(info)
     } else {
         info
