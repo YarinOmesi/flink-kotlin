@@ -12,7 +12,7 @@ import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
  */
 public class NullableTypeInfo<T>(
     public val innerTypeInformation: TypeInformation<T>,
-    private val padNullValueIfFixedLen: Boolean = false
+    private val padNullValueIfFixedLen: Boolean = false,
 ) : TypeInformation<T>() {
     override fun isBasicType(): Boolean = innerTypeInformation.isBasicType
 
@@ -38,12 +38,10 @@ public class NullableTypeInfo<T>(
 
     override fun isSortKeyType(): Boolean = innerTypeInformation.isSortKeyType
 
-    override fun toString(): String {
-        return "NullableTypeInfo<$innerTypeInformation>"
-    }
+    override fun toString(): String = "NullableTypeInfo<$innerTypeInformation>"
 
     override fun equals(other: Any?): Boolean {
-        if(other !is NullableTypeInfo<*>) return false
+        if (other !is NullableTypeInfo<*>) return false
         return other.canEqual(this) && innerTypeInformation.equals(other)
     }
 
