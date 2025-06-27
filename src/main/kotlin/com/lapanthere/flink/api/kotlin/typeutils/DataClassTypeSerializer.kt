@@ -15,49 +15,57 @@ public class DataClassTypeSerializer<T : Any>(
     override fun duplicate(): TypeSerializer<T> {
         val duplicatedFieldSerializers = fieldSerializers.map { it.duplicate() }.toTypedArray<TypeSerializer<*>>()
 
-        val stateful  = fieldSerializers.indices.any { i -> fieldSerializers[i] !== duplicatedFieldSerializers[i] }
+        val stateful = fieldSerializers.indices.any { i -> fieldSerializers[i] !== duplicatedFieldSerializers[i] }
 
-        return if(stateful) {
+        return if (stateful) {
             DataClassTypeSerializer(tupleClass, duplicatedFieldSerializers)
         } else {
             this
         }
     }
 
-    override fun createInstance(fields: Array<out Any?>): T {
-        return try {
+    override fun createInstance(fields: Array<out Any?>): T =
+        try {
             tupleClass.kotlin.primaryConstructor!!.call(*fields)
         } catch (e: Throwable) {
             throw RuntimeException("Cannot instantiate ${tupleClass.name}.", e)
         }
-    }
 
-    override fun createInstance(): T {
-        return createInstance(fieldSerializers.map { it.createInstance() }.toTypedArray())
-    }
+    override fun createInstance(): T = createInstance(fieldSerializers.map { it.createInstance() }.toTypedArray())
 
-    override fun deserialize(source: DataInputView): T {
-        return createInstance(fieldSerializers.map { it.deserialize(source) }.toTypedArray())
-    }
+    override fun deserialize(source: DataInputView): T = createInstance(fieldSerializers.map { it.deserialize(source) }.toTypedArray())
 
     override fun snapshotConfiguration(): TypeSerializerSnapshot<T> = DataClassTypeSerializerSnapshot(this)
 
-    override fun createOrReuseInstance(fields: Array<out Any>, reuse: T?): T = createInstance(fields)
+    override fun createOrReuseInstance(
+        fields: Array<out Any>,
+        reuse: T?,
+    ): T = createInstance(fields)
 
-    override fun deserialize(reuse: T?, source: DataInputView): T? = deserialize(source)
+    override fun deserialize(
+        reuse: T?,
+        source: DataInputView,
+    ): T? = deserialize(source)
 
-    override fun serialize(record: T, target: DataOutputView) {
+    override fun serialize(
+        record: T,
+        target: DataOutputView,
+    ) {
         fieldSerializers.forEachIndexed { i, serializer ->
             serializer.serialize(record.component(i), target)
         }
     }
 
-    override fun copy(from: T, reuse: T): T? = copy(from)
+    override fun copy(
+        from: T,
+        reuse: T,
+    ): T? = copy(from)
 
     override fun copy(from: T): T? {
-        val fields = fieldSerializers
-            .mapIndexed { i, serializer -> serializer.copy(from.component(i)) }
-            .toTypedArray()
+        val fields =
+            fieldSerializers
+                .mapIndexed { i, serializer -> serializer.copy(from.component(i)) }
+                .toTypedArray()
         return createInstance(fields)
     }
 }
