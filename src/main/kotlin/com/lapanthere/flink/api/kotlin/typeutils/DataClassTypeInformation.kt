@@ -24,19 +24,20 @@ public class DataClassTypeInformation<T : Any>(
     kotlinFieldTypes: Array<TypeInformation<*>>,
     private val kotlinFieldNames: Array<String>,
 ) : TupleTypeInfoBase<T>(klass, *kotlinFieldTypes) {
-    override fun toString(): String = buildString {
-        append(klass.simpleName)
-        if (types.isNotEmpty()) {
-            append(types.joinToString(", ", "<", ">"))
+    override fun toString(): String =
+        buildString {
+            append(klass.simpleName)
+            if (types.isNotEmpty()) {
+                append(types.joinToString(", ", "<", ">"))
+            }
         }
-    }
 
     public override fun equals(other: Any?): Boolean {
-        if(other !is DataClassTypeInformation<*>) return false
+        if (other !is DataClassTypeInformation<*>) return false
         return other.canEqual(this) &&
-                super.equals(other) &&
-                genericParameters == other.genericParameters &&
-                fieldNames.contentEquals(other.fieldNames)
+            super.equals(other) &&
+            genericParameters == other.genericParameters &&
+            fieldNames.contentEquals(other.fieldNames)
     }
 
     public override fun canEqual(obj: Any?): Boolean = obj is DataClassTypeInformation<*>
@@ -166,7 +167,10 @@ public class DataClassTypeInformation<T : Any>(
 
         override fun initializeTypeComparatorBuilder(size: Int) {}
 
-        override fun addComparatorField(fieldId: Int, comparator: TypeComparator<*>, ) {
+        override fun addComparatorField(
+            fieldId: Int,
+            comparator: TypeComparator<*>,
+        ) {
             fieldComparators += comparator
             logicalKeyFields += fieldId
         }
